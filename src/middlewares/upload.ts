@@ -1,10 +1,17 @@
 import multer from 'multer';
 import path from 'path';
+import fs from "fs";
 
+const uploadDir = path.join(__dirname, "../uploads/profile-pictures");
+
+// Ensure the directory exists
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
 //disk or memory stoarge confirm before production!
 const storage = multer.diskStorage({
 destination: (req,file,cb)=>{
-    cb(null,'uploads/profile-pictures/');
+    cb(null,uploadDir);
 },
 filename:(req,file,cb)=>{
     cb(null,`${Date.now()}-${file.originalname}`);

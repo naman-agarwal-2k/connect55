@@ -37,11 +37,11 @@ export class UserController{
         }
       }
     
-      public async userRegistration(
+    public async userRegistration(
         payload: Request,
         res: Response
-      ): Promise<void> {
-        try {
+    ): Promise<void> {
+      try {
           const {
             email, password, ...rest
           } = payload.body;
@@ -58,20 +58,28 @@ export class UserController{
         }catch(error){
             sendError(error, res, {});
         }
-        };
+      }
          
      
 // Update User
-updateUser = async (req: Request, res: Response) => {
+public async updateUser(req: Request, res: Response):Promise<void> {
     const { id } = req.params;
     try {
-      const user = await User.findByIdAndUpdate(id, req.body, { new: true });
-      if (!user) return res.status(404).json({ error: 'User not found.' });
+         // Prepare update object
+    const updateData: any = { ...req.body };
+
+    // Add profilePicture if a file is uploaded
+    if (req.file) {
+      updateData.profilePicture = `/uploads/${req.file.filename}`;
+    }
+      const user = await User.findByIdAndUpdate(id, updateData, { new: true });
+      if (!user) throw new Error(
+        ResponseMessages.ERROR.USER_NOT_FOUND.customMessage
+      )
   
-      res.json({ message: 'User updated successfully.', user });
+      sendSuccess(SUCCESS.PROFILE_UPDATE,user, res, {});
     } catch (err) {
-      res.status(500).json({ error:  sendError(err, res, {})
-    });
+      sendError(err, res, {});
     }
   };
   

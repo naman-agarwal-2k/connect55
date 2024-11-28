@@ -2,6 +2,7 @@ import { UserController } from "../controllers/userController";
 import { UserService } from "../services/userService";
 import express, { Request, Response } from 'express';
 import Validator from "./validator";
+import upload from "../middlewares/upload";
 
 const userService = new UserService();
 const userController =  new UserController(userService);
@@ -29,6 +30,7 @@ router.get(
     Validator.userRegistration,
     userController.userRegistration.bind(userController)
   );
+  router.patch("/users/update/:id",upload.single("profilePicture"),Validator.userUpdate,userController.updateUser.bind(userController));
 
   app.use("/api/v1", router);
 

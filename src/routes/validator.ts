@@ -4,8 +4,6 @@ import constants from "../utils/constants";
 import { sendError } from "../utils/universalFunctions";
 
 
-
-
 const userLogin= async(req:any,res:any,next:any)=>{
     startSection("userLogin");
     logRequest(req);
@@ -42,7 +40,28 @@ const userSchema = Joi.object({
     }
   };
 
+  const userUpdate = async (req: any, res: any, next: any) => {
+    startSection("userUpdate");
+    logRequest(req);
+    // Joi Schema
+const userSchema = Joi.object({
+    email: Joi.any().forbidden(),
+    name: Joi.string().optional(),
+    bio: Joi.string().optional(),
+    designation: Joi.string().optional(),
+    department: Joi.string().optional(),
+    skills: Joi.array().items(Joi.string()).optional(),
+    workLocation: Joi.string().optional(),
+  });
+    let validFields = validateFields(req.body, res, userSchema);
+    if (validFields) {
+      req.body.req_ip = req.connection.remoteAddress;
+      next();
+    }
+  };
+
 export default {
     userLogin,
-    userRegistration
+    userRegistration,
+    userUpdate
 }
