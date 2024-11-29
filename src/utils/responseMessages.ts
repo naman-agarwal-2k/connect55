@@ -136,6 +136,11 @@ export const SUCCESS = {
     customMessage: "We have successfully updated your password.",
     type: "PASSWORD_UPDATED",
   },
+  ORG_DATA_LIST: {
+    statusCode: 200,
+    customMessage: "Organisation data has been fetched successfully.",
+    type: "ORG_DATA_LIST",
+  },
 };
 
 export default {

@@ -2,12 +2,9 @@ import { UserService } from "../services/userService";
 import ResponseMessages, { SUCCESS } from "../utils/responseMessages";
 import { TITLES } from "../utils/headerTitles";
 import { Request, Response } from "express";
-import Constants from "../utils/constants";
 import {
   sendError,
   sendSuccess,
-  toISOString,
-  validatePassword,
 } from "../utils/universalFunctions";
 import bcrypt from 'bcryptjs';
 import User from '../models/User';
