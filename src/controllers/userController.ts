@@ -61,14 +61,16 @@ export class UserController{
 // Update User
 public async updateUser(req: Request, res: Response):Promise<void> {
     const { id } = req.params;
+    
     try {
-         // Prepare update object
+    // Prepare update object
     const updateData: any = { ...req.body };
 
     // Add profilePicture if a file is uploaded
     if (req.file) {
       updateData.profilePicture = `/uploads/${req.file.filename}`;
     }
+   
       const user = await User.findByIdAndUpdate(id, updateData, { new: true });
       if (!user) throw new Error(
         ResponseMessages.ERROR.USER_NOT_FOUND.customMessage
@@ -79,6 +81,25 @@ public async updateUser(req: Request, res: Response):Promise<void> {
       sendError(err, res, {});
     }
   };
+
+  public async getUserData(req: Request, res:Response): Promise<void>{
+    const {id}= req.params;
+    try{
+      if (!id) {
+        throw new Error(ResponseMessages.ERROR.ID_NOT_FOUND.customMessage)
+      }
+           const user= await User.findById(id);
+
+     if (!user) throw new Error(
+      ResponseMessages.ERROR.USER_NOT_FOUND.customMessage
+    )
+
+    // Send user data
+      sendSuccess(SUCCESS.PROFILE_LIST,user, res, {});
+  } catch (err) {
+    sendError(err, res, {});
+  }
+};
   
   // Delete User
   deleteUser = async (req: Request, res: Response) => {
@@ -94,14 +115,3 @@ public async updateUser(req: Request, res: Response):Promise<void> {
     }
   };     
 }
-// Joi Schema
-const userSchema = Joi.object({
-    email: Joi.string().email().required(),
-    password: Joi.string().min(6).required(),
-    name: Joi.string().optional(),
-    bio: Joi.string().optional(),
-    designation: Joi.string().optional(),
-    department: Joi.string().optional(),
-    skills: Joi.array().items(Joi.string()).optional(),
-    workLocation: Joi.string().optional(),
-  });

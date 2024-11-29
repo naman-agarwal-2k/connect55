@@ -61,6 +61,11 @@ export const ERROR = {
     customMessage: "User not found.",
     type: "USER_NOT_FOUND",
   },
+  ID_NOT_FOUND: {
+    statusCode: 404,
+    customMessage: "Id not found.",
+    type: "ID_NOT_FOUND",
+  },
   INVALID_ACCESS_TOKEN: {
     statusCode: 401,
     customMessage: "Invalid access token.",
