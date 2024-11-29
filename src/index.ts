@@ -5,10 +5,12 @@ import http from "http";
 import cors from "cors";
 import mongoose from 'mongoose';
 import * as dotenv from "dotenv";
+import path from 'path';
  
 const app = express();
 app.set("port",config.port); 
- 
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
 // app.use(cookieParser());
 app.use(
   cors({

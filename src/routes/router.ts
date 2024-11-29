@@ -22,10 +22,10 @@ router.get(
     "/header-titles",
     userController.getHeaderTitles.bind(userController)
   );
-  //The bind method creates a new function with the this context explicitly set to the userController object.
+
+//The bind method creates a new function with the this context explicitly set to the userController object.
 // This ensures that inside the getHeaderTitles method, the this keyword correctly refers
 //  to the userController object, not the router or other calling context.
-
 
   router.post(
     "/users/register",
@@ -33,11 +33,12 @@ router.get(
     userController.userRegistration.bind(userController)
   );
   router.patch("/users/update/:id",upload.single("profilePicture"),Validator.userUpdate,userController.updateUser.bind(userController));
-  router.get("users/:id",userController.getUserData.bind(userController));
+
+  router.get("/users/user-data/:id",userController.getUserData.bind(userController));
 
   router.get("/organisation-data", orgDataController.getOrganisationData.bind(orgDataController));
-
   
+
   app.use("/api/v1", router);
 
 }

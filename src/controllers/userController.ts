@@ -8,7 +8,9 @@ import {
 } from "../utils/universalFunctions";
 import bcrypt from 'bcryptjs';
 import User from '../models/User';
-import Joi from 'joi';
+import fs from "fs";
+ import path from "path";
+
 
 export class UserController{
     private userService: UserService;
@@ -59,28 +61,46 @@ export class UserController{
          
      
 // Update User
-public async updateUser(req: Request, res: Response):Promise<void> {
-    const { id } = req.params;
-    
-    try {
+public async updateUser(req: Request, res: Response): Promise<void> {
+  const { id } = req.params;
+
+  try {
+    // Fetch user by ID
+    const user = await User.findById(id);
+    if (!user) {
+      throw new Error(ResponseMessages.ERROR.USER_NOT_FOUND.customMessage);
+    }
+
     // Prepare update object
     const updateData: any = { ...req.body };
 
     // Add profilePicture if a file is uploaded
     if (req.file) {
-      updateData.profilePicture = `/uploads/${req.file.filename}`;
+      const newProfilePicturePath = `/uploads/profile-pictures/${req.file.filename}`;
+
+      // Remove old profile picture if it exists
+      if (user.profilePicture) {
+        const oldProfilePicturePath = path.join(__dirname, "..", user.profilePicture);
+
+        if (fs.existsSync(oldProfilePicturePath)) {
+          fs.unlinkSync(oldProfilePicturePath); // Delete the old file
+        }
+      }
+
+      updateData.profilePicture = newProfilePicturePath;
     }
-   
-      const user = await User.findByIdAndUpdate(id, updateData, { new: true });
-      if (!user) throw new Error(
-        ResponseMessages.ERROR.USER_NOT_FOUND.customMessage
-      )
-  
-      sendSuccess(SUCCESS.PROFILE_UPDATE,user, res, {});
-    } catch (err) {
-      sendError(err, res, {});
-    }
-  };
+
+    // Update the user instance and save
+    user.set(updateData);
+    const updatedUser = await user.save();
+
+    // Send updated user data in response
+    sendSuccess(SUCCESS.PROFILE_UPDATE, updatedUser, res, {});
+  } catch (err) {
+    sendError(err, res, {});
+  }
+}
+
 
   public async getUserData(req: Request, res:Response): Promise<void>{
     const {id}= req.params;
