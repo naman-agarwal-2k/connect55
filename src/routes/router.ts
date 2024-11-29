@@ -33,6 +33,8 @@ router.get(
     userController.userRegistration.bind(userController)
   );
   router.patch("/users/update/:id",upload.single("profilePicture"),Validator.userUpdate,userController.updateUser.bind(userController));
+  router.get("users/:id",userController.getUserData.bind(userController));
+
   router.get("/organisation-data", orgDataController.getOrganisationData.bind(orgDataController));
 
   

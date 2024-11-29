@@ -53,6 +53,9 @@ const userSchema = Joi.object({
     skills: Joi.array().items(Joi.string()).optional(),
     workLocation: Joi.string().optional(),
   });
+      if (req.body.skills && typeof req.body.skills === "string") {
+      req.body.skills = JSON.parse(req.body.skills);
+    }
     let validFields = validateFields(req.body, res, userSchema);
     if (validFields) {
       req.body.req_ip = req.connection.remoteAddress;
