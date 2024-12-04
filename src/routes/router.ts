@@ -32,6 +32,11 @@ router.get(
     Validator.userRegistration,
     userController.userRegistration.bind(userController)
   );
+  router.post(
+    "/users/login",
+    Validator.userLogin,
+    userController.userLogin.bind(userController)
+  );
   router.patch("/users/update/:id",upload.single("profilePicture"),Validator.userUpdate,userController.updateUser.bind(userController));
 
   router.get("/users/user-data/:id",userController.getUserData.bind(userController));
