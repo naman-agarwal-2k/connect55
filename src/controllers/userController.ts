@@ -5,11 +5,13 @@ import { Request, Response } from "express";
 import {
   sendError,
   sendSuccess,
+  toISOString,
 } from "../utils/universalFunctions";
 import bcrypt from 'bcryptjs';
 import User from '../models/User';
 import fs from "fs";
  import path from "path";
+import { generateAccessToken } from "../middlewares/jwt";
 
 
 export class UserController{
@@ -59,6 +61,42 @@ export class UserController{
         }
       }
          
+      public async userLogin(
+        payload: Request,
+        res: Response
+    ): Promise<void> {
+      try {
+          const {
+            email,password
+          } = payload.body;
+
+          const existingUser = await User.findOne({email});
+          if (!existingUser)  throw new Error(
+            ResponseMessages.ERROR.INVALID_EMAIL.customMessage
+          )
+          const isPasswordValid = await bcrypt.compare(password, existingUser.password);
+          if (!isPasswordValid)  throw new Error(
+            ResponseMessages.ERROR.INVALID_PASSWORD.customMessage
+          )
+            // const randomString = toISOString() + existingUser._id + existingUser.email;
+            const accessTokenParams: any = {
+              userId: existingUser._id,
+              emailId: existingUser.email,
+              // randomString: randomString,
+            };
+            const token = generateAccessToken(accessTokenParams);
+            const userResponse: any = {
+              userId: existingUser._id,
+              emailId: existingUser.email,
+              token: token,
+            };
+          sendSuccess(SUCCESS.LOGIN,userResponse,res,{}
+          );
+
+        }catch(error){
+            sendError(error, res, {});
+        }
+      }
      
 // Update User
 public async updateUser(req: Request, res: Response): Promise<void> {

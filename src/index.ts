@@ -4,7 +4,6 @@ import { registerRoutes } from "./routes/router";
 import http from "http";
 import cors from "cors";
 import mongoose from 'mongoose';
-import * as dotenv from "dotenv";
 import path from 'path';
  
 const app = express();
