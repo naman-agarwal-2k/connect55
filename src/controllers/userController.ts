@@ -54,7 +54,19 @@ export class UserController{
           const hashedPassword = await bcrypt.hash(password, 10);
           const newUser = new User({ email, password: hashedPassword, ...rest });
           await newUser.save();
-          sendSuccess(SUCCESS.REGISTER,newUser, res, {});
+
+          //jwt code 
+          const accessTokenParams: any = {
+            userId: newUser._id,
+            emailId: newUser.email,
+          };
+          const token = generateAccessToken(accessTokenParams);
+          const userResponse: any = {
+            userId: newUser._id,
+            emailId: newUser.email,
+            token: token,
+          };
+          sendSuccess(SUCCESS.REGISTER,userResponse, res, {});
 
         }catch(error){
             sendError(error, res, {});
