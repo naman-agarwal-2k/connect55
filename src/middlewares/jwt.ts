@@ -1,6 +1,8 @@
 const jwtSecretKey: any = process.env.JWT_SECRET_KEY;
 import jwt from "jsonwebtoken";
 import constants from "../utils/constants";
+import { sendError } from "../utils/universalFunctions";
+import { ERROR } from "../utils/responseMessages";
 
 export const generateAccessToken = function (accessTokenParams: any) {
   const token = jwt.sign(
@@ -11,7 +13,7 @@ export const generateAccessToken = function (accessTokenParams: any) {
     },
     jwtSecretKey,
     {
-      expiresIn: constants.accessTokenExpiryDays.EXPIRY_DAYS + "d",
+      expiresIn: constants.accessTokenExpiryDays.EXPIRY_DAYS + "s",
     }
   );
   return token;
@@ -22,8 +24,8 @@ export const authenticateJWT = async function (accessToken: string, res: any): P
   return new Promise((resolve, reject) => {
     jwt.verify(accessToken, jwtSecretKey, (err: any, decoded: any) => {
       if (err) {
-        res.status(403).json({ message: "Invalid or expired token." });
-        return reject(err);
+               sendError(ERROR.JWT_TOKEN_EXPIRED, res,{});
+         return;
       }
 
       const userId = decoded.userId;

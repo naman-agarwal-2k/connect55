@@ -45,6 +45,11 @@ export const ERROR = {
       "Your account has been deactivated, Please coordinate with admin.",
     type: "ACCOUNT_DEACTIVATED",
   },
+  JWT_TOKEN_EXPIRED: {
+    statusCode: 400,
+    customMessage: "Invalid or expired token.",
+    type: "JWT_TOKEN_EXPIRED",
+  },
   ACCOUNT_DELETED: {
     statusCode: 410,
     customMessage:
