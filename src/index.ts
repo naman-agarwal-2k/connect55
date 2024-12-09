@@ -1,11 +1,12 @@
-import express , { Request, Response } from 'express';
+import express  from 'express';
 import { config } from "./config/index";
 import { registerRoutes } from "./routes/router";
 import http from "http";
 import cors from "cors";
 import mongoose from 'mongoose';
 import path from 'path';
- 
+import './mqttService/mqttClient';
+
 const app = express();
 app.set("port",config.port); 
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));

@@ -4,6 +4,7 @@ import express, { Request, Response } from 'express';
 import Validator from "./validator";
 import upload from "../middlewares/upload";
 import { OrgDataController } from "../controllers/orgDataController";
+import { createChat, getChatById, getChatByUserId, sendMessage } from "../mqttService/mqttController";
 
 const userService = new UserService();
 const userController =  new UserController(userService);
@@ -43,6 +44,22 @@ router.get(
 
   router.get("/organisation-data", orgDataController.getOrganisationData.bind(orgDataController));
   
+
+  router.post("/chat/upload",upload.single("media"),(req:any, res:any) => {
+    const fileUrl = `/uploads/chats/${req.file.filename}`;
+    res.status(200).json({ success: true, url: fileUrl });
+  });
+
+  router.post("/chat/create-chat", createChat);
+
+  // Route to get all chats for a user
+  router.get("/chat/:userId", getChatByUserId);
+
+  // Route to get chat details by chat ID
+  router.get("/chat/:chatId", getChatById );
+
+// Route to send a message to a chat
+ router.post("/chat/send-message", sendMessage);
 
   app.use("/api/v1", router);
 
