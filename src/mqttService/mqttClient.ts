@@ -2,17 +2,15 @@ import mqtt from "mqtt";
 import { Chat } from "../models/Chat";
 
 //MQTT broker connection
-const brokerUrl = 'mqtt://localhost:1883';
+const brokerUrl = 'mqtt://test.mosquitto.org';
+// 'mqtt://localhost:1883';
 const mqttClient = mqtt.connect(brokerUrl);
 
 const topic = 'chat/messages'
-
+ 
 //on successfull connection
 mqttClient.on("connect",()=>{
     console.log('Connected to MQTT broker');
-    // mqttClient.subscribe(topic, () => {
-    //     console.log(`Subscribe to topic '${topic}'`)
-    //   })
     mqttClient.subscribe('chat/+/messages', (err) => {
         if (err) {
           console.error('Failed to subscribe to chat topics', err);
@@ -23,30 +21,6 @@ mqttClient.on("connect",()=>{
 }
 );
 
-
-// mqttClient.on('message',async(topic,message)=>{
-//     console.log('Received message1:',message);
-
-//     const parsedMessage = JSON.parse(message.toString());
-
-//     if(topic.startsWith('chat/')){
-//       console.log('Received message:',parsedMessage);
-
-//       //Example: Update the database or perform real-time notifications
-//       const chatId = topic.split('/')[1];
-//     //   await Chat.findByIdAndUpdate(chatId,{
-//     //     $push:{messages:parsedMessage},
-//     //   })
-//     }
-// });
- // Subscribe to necessary topics
-//  mqttClient.subscribe('chat/+', (err) => {
-//     if (err) {
-//       console.error('Failed to subscribe to topics:', err.message);
-//     } else {
-//       console.log('Subscribed to chat topics');
-//     }
-//   });
 mqttClient.on('message', async (topic, message) => {
     try {
       const topicParts = topic.split('/');
