@@ -2,7 +2,7 @@ import { Request,Response } from "express";
 import { Chat } from "../models/Chat";
 import { sendError, sendSuccess } from "../utils/universalFunctions";
 import { ERROR, SUCCESS } from "../utils/responseMessages";
-import mqttClient from "./mqttClient";
+import { mqttClient } from "./mqttClient";
 
 // export const createChat = async(req: Request, res:Response)=>{
 //     const {type,participants}=req.body;
@@ -99,6 +99,8 @@ export const createChat = async (req: Request, res: Response) => {
   };
 
   export const sendMessage = async (req: Request, res: Response) => {
+    console.log("send message API Triggered with body:", req.body);
+
     const { chatId, senderId, content, media } = req.body;
   
     try {
