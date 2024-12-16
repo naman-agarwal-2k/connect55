@@ -37,11 +37,15 @@ const startMqttWithNgrok = async () => {
     mqttClient.on('message', async (topic, message) => {
       console.log('Message received:', message);
       try {
+
         const topicParts = topic.split('/');
         const chatId = topicParts[1]; // Extract chatId from the topic
 
         // Parse the message content
         const parsedMessage = JSON.parse(message.toString());
+
+          // Ignore messages originating from the server
+          if (parsedMessage.origin === 'server') return;
 
         // Update the chat in the database
         const chat = await Chat.findById(chatId);

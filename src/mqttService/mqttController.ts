@@ -73,16 +73,16 @@ export const createChat = async (req: Request, res: Response) => {
                 (participantId:  mongoose.Types.ObjectId) => !removeMembers.includes(participantId.toString())
             );
         }
-
-               // Save the updated chat
-               await chat.save();
-               sendSuccess(SUCCESS.DEFAULT, chat, res, {});
+             // Save the updated chat
+             await chat.save();
+             sendSuccess(SUCCESS.DEFAULT, chat, res, {});
 
     }catch(err){
         sendError(err, res, {});
 
     }
   }
+
   export const getChatByUserId = async (req: Request, res: Response) => {
     const { userId } = req.params;
   
@@ -98,6 +98,7 @@ export const createChat = async (req: Request, res: Response) => {
       sendError(err, res, {});
     }
   };
+
   export const getChatById = async (req: Request, res: Response) => {
     const { chatId } = req.params;
   
@@ -146,7 +147,7 @@ export const createChat = async (req: Request, res: Response) => {
       await chat.save();
   
       // Publish the message to MQTT
-      mqttClient.publish(`chat/${chatId}/messages`, JSON.stringify(message));
+      mqttClient.publish(`chat/${chatId}/messages`, JSON.stringify({message,origin: 'server'}));
   
       sendSuccess(SUCCESS.DEFAULT, message, res, {});
     } catch (err) {
