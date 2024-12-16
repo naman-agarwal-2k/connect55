@@ -38,6 +38,7 @@ router.get(
     Validator.userLogin,
     userController.userLogin.bind(userController)
   );
+  //this upload.single and in chat upload media are same thing
   router.patch("/users/update/:id",upload.single("profilePicture"),Validator.userUpdate,userController.updateUser.bind(userController));
 
   router.get("/users/user-data/:id",userController.getUserData.bind(userController));
@@ -45,10 +46,10 @@ router.get(
   router.get("/organisation-data", orgDataController.getOrganisationData.bind(orgDataController));
   
 
-  router.post("/chat/upload",upload.single("media"),(req:any, res:any) => {
-    const fileUrl = `/uploads/chats/${req.file.filename}`;
-    res.status(200).json({ success: true, url: fileUrl });
-  });
+  // router.post("/chat/upload",upload.single("media"),(req:any, res:any) => {
+  //   const fileUrl = `/uploads/chats/${req.file.filename}`;
+  //   res.status(200).json({ success: true, url: fileUrl });
+  // });
 
   router.post("/chat/create-chat", createChat);
 

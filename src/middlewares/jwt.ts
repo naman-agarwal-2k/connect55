@@ -13,7 +13,7 @@ export const generateAccessToken = function (accessTokenParams: any) {
     },
     jwtSecretKey,
     {
-      expiresIn: constants.accessTokenExpiryDays.EXPIRY_DAYS + "s",
+      expiresIn: constants.accessTokenExpiryDays.EXPIRY_DAYS + "d",
     }
   );
   return token;

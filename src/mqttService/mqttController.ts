@@ -1,17 +1,19 @@
-import { Request,Response } from "express";
+import { NextFunction, Request,RequestHandler,Response } from "express";
 import { Chat } from "../models/Chat";
 import { sendError, sendSuccess } from "../utils/universalFunctions";
 import { ERROR, SUCCESS } from "../utils/responseMessages";
 import { mqttClient } from "./mqttClient";
 import User from "../models/User";
 import mongoose from "mongoose";
+import upload from "../middlewares/upload";
+import multer from "multer";
 
 export const createChat = async (req: Request, res: Response) => {
     const { type, participants,groupName } = req.body;
   
     try {
 
-             // Validate the type
+      // Validate the type
       if (!['one-to-one', 'group'].includes(type)) {
         return sendError(Error('Invalid chat type'), res, {});
       }
@@ -110,9 +112,21 @@ export const createChat = async (req: Request, res: Response) => {
     }
   };
 
-  export const sendMessage = async (req: Request, res: Response) => {
+  export const sendMessage: RequestHandler[] = [
+    (req, res, next) => {
+      upload.single("media")(req, res, (err) => {
+        if (err instanceof multer.MulterError) {
+          // Multer-specific error (e.g., file size exceeded)
+          return res.status(400).json({ success: false, message: err.message });
+        } else if (err) {
+          // Other errors (e.g., invalid file type)
+          return res.status(400).json({ success: false, message: err.message });
+        }
+        next();
+      });
+    },async (req: Request, res: Response) => {
     console.log("send message API Triggered with body:", req.body);
-
+    
     const { chatId, senderId, content, media } = req.body;
   
     try {
@@ -124,7 +138,7 @@ export const createChat = async (req: Request, res: Response) => {
       const message = {
         sender: senderId,
         content,
-        media,
+        media: req.file ? `/uploads/chat-media/${req.file.filename}` : null, // File or image path
         timestamp: Date.now(),
       };
   
@@ -138,7 +152,7 @@ export const createChat = async (req: Request, res: Response) => {
     } catch (err) {
       sendError(err, res, {});
     }
-  };
+  }];
 
   export const markMessageAsSeen = async (req: Request, res: Response) => {
   const { chatId, messageId, userId } = req.body;
