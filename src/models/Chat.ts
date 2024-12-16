@@ -23,6 +23,10 @@ const MessageSchema = new mongoose.Schema({
 
 const ChatSchema = new mongoose.Schema({
     type: { type: String, enum: ['one-to-one', 'group'], required: true },
+    groupName: {
+        type: String, // Only for group chats
+        default: null,
+    },
     participants: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     messages: [MessageSchema]
 }, {

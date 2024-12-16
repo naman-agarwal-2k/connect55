@@ -8,17 +8,18 @@ let mqttClient: mqtt.MqttClient;
 // Function to start Ngrok and connect to MQTT
 const startMqttWithNgrok = async () => {
   try {
-    const httpUrl= await ngrok.connect(9001)
-    console.log(httpUrl)
-    // Start Ngrok to expose the local MQTT port (e.g., 1883)
-    const url = await ngrok.connect({ proto: 'tcp', addr: 1883 });  // Change port if necessary
-    console.log('Ngrok Tunnel URL:', url);
+    // const httpUrl= await ngrok.connect(9001)
+    // console.log(httpUrl)
+    // // Start Ngrok to expose the local MQTT port (e.g., 1883)
+    // const url = await ngrok.connect({ proto: 'tcp', addr: 1883 });  // Change port if necessary
+    // console.log('Ngrok Tunnel URL:', url);
 
-    // Parse the TCP URL from Ngrok's output (convert HTTP to TCP for MQTT)
-    const mqttUrl = url.replace('http', 'tcp');
+    // // Parse the TCP URL from Ngrok's output (convert HTTP to TCP for MQTT)
+    // const mqttUrl = url.replace('http', 'tcp');
+    const brokerUrl = 'mqtt://localhost:1883';
 
     // MQTT broker connection
-    mqttClient = mqtt.connect(mqttUrl);
+    mqttClient = mqtt.connect(brokerUrl);
 
     // On successful connection to the MQTT broker
     mqttClient.on("connect", () => {

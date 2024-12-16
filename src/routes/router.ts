@@ -4,7 +4,7 @@ import express, { Request, Response } from 'express';
 import Validator from "./validator";
 import upload from "../middlewares/upload";
 import { OrgDataController } from "../controllers/orgDataController";
-import { createChat, getChatById, getChatByUserId, sendMessage } from "../mqttService/mqttController";
+import { createChat, getChatById, getChatByUserId, sendMessage, updateGroupChat } from "../mqttService/mqttController";
 
 const userService = new UserService();
 const userController =  new UserController(userService);
@@ -60,6 +60,8 @@ router.get(
 
 // Route to send a message to a chat
  router.post("/chat/send-message", sendMessage);
+
+ router.put("/chat/group/update",updateGroupChat);
 
   app.use("/api/v1", router);
 
