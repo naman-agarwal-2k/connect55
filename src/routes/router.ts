@@ -57,7 +57,7 @@ router.get(
   router.get("/chat/:userId", getChatByUserId);
 
   // Route to get chat details by chat ID
-  router.get("/chat/:chatId", getChatById );
+  router.get("/chat-data/:chatId", getChatById );
 
 // Route to send a message to a chat
  router.post("/chat/send-message", sendMessage);
