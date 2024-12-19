@@ -43,7 +43,15 @@ const startMqttWithNgrok = async () => {
 
         // Parse the message content
         const parsedMessage = JSON.parse(message.toString());
+   // const participants = chat.participants; // Assuming the chat model has participants
+        // const deviceTokens = participants.map((user: any) => user.deviceToken); // Replace with your logic
 
+        // // Send notification to participants
+        // await sendNotification(deviceTokens, {
+        //     title: "New Message",
+        //     body: parsedMessage.content || "You have a new message!",
+        //     data: { chatId },
+        // });
           // Ignore messages originating from the server
           if (parsedMessage.origin === 'server') return;
 

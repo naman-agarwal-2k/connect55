@@ -21,6 +21,8 @@ const schemaOptions = {
     },
   id: false, // Suppress the default id alias
 };
+enum roleEnum{"admin", "moderator", "regular"} ;
+
 export interface IUser extends Document {
   email: string;
   password: string;
@@ -31,8 +33,9 @@ export interface IUser extends Document {
   skills?: string[];
   workLocation?: string;
   profilePicture?: string; // URL or path
+  deviceTokens: string[]; //array of device tokens that you want to send notifications to.
+  role:string;// User's role (e.g., "admin", "moderator", "regular")
 }
-
 const UserSchema: Schema = new Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
@@ -43,12 +46,11 @@ const UserSchema: Schema = new Schema({
   skills: { type: [String], default: [] },
   workLocation: { type: String, default: null },
   profilePicture: { type: String, default: null },
+  deviceTokens: { type: [String], default: [] },
+  role: {type: String, roleEnum,default:"regular"}
 }, 
 schemaOptions
 );
-// Add a virtual field to alias `_id` to `_userId`
-// UserSchema.virtual("_userId").get(function () {
-//   return this._id;
-// });
+
 
 export default mongoose.model<IUser>('User', UserSchema);

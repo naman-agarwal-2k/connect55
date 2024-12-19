@@ -9,7 +9,7 @@ import upload from "../middlewares/upload";
 import multer from "multer";
 
 export const createChat = async (req: Request, res: Response) => {
-    const { type, participants,groupName } = req.body;
+    const { type, participants,groupName/*,adminId*/ } = req.body;
   
     try {
 
@@ -18,14 +18,22 @@ export const createChat = async (req: Request, res: Response) => {
         return sendError(Error('Invalid chat type'), res, {});
       }
 
-     if (type === 'group' && !groupName) {
+     if (type === 'group' ) {
+      if(!groupName){
             return sendError(new Error('Group name is required for group chats'), res, {});
+          }
+        //   else if (!participants.includes(adminId)) {
+        //     return sendError(new Error('Admin must be a participant of the group.'), res, {});
+        // }
+        }
+     if(type === "one-to-one" && (participants.length>2)){
+      return sendError(new Error('Try creating group to chat with more people'), res, {});
      }
-  
       const chat = new Chat({
         type,
         groupName: type === 'group' ? groupName : null,
         participants,
+        // groupAdmin:adminId
       });
   
       await chat.save();
@@ -36,7 +44,7 @@ export const createChat = async (req: Request, res: Response) => {
   };
 
   export const updateGroupChat = async (req:Request, res: Response)=>{
-    const {chatId,groupName,addMembers,removeMembers}=req.body;
+    const {/*userId,*/chatId,groupName,addMembers,removeMembers}=req.body;
 
     try{
         const chat = await Chat.findById(chatId);
@@ -47,7 +55,11 @@ export const createChat = async (req: Request, res: Response) => {
         if(chat.type !=="group"){
             return sendError(new Error("Only group chats can be updated"),res,{});
         }
-
+         // Check if the user is the group admin
+        //  if (chat.groupAdmin !== userId) {
+        //   return res.status(403).json({ message: "Only the group admin can update participants." });
+        // }
+        
         // Update the group name if provided
         if(groupName){
             chat.groupName=groupName;
@@ -137,7 +149,7 @@ export const createChat = async (req: Request, res: Response) => {
       }
   
       const message = {
-        sender: senderId,
+        senderId: senderId,
         content,
         media: req.file ? `/uploads/chat-media/${req.file.filename}` : null, // File or image path
         timestamp: Date.now(),
