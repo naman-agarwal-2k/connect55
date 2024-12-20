@@ -170,6 +170,36 @@ public async updateUser(req: Request, res: Response): Promise<void> {
     sendError(err, res, {});
   }
 };
+
+
+ public async searchUsers(req:Request,res:Response):Promise<void>{
+  
+  try{
+    const {query,role}=req.query;
+    const searchQuery=  query && typeof query === "string" ? query : "";
+    
+    const filter:any = {};
+
+    if(searchQuery){
+      filter.$or =[
+        {name: new RegExp(searchQuery, 'i')},
+        {email: new RegExp(searchQuery, 'i')}
+      ];
+    }
+    if(role){
+      filter.role = role;
+    }
+
+    const users = await User.find(filter);
+    sendSuccess(SUCCESS.DEFAULT,users, res, {});
+
+   }
+  catch(err){
+    sendError(err, res, {});
+
+  }
+
+ }
   
   // Delete User
   deleteUser = async (req: Request, res: Response) => {

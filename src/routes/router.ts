@@ -43,6 +43,8 @@ router.get(
 
   router.get("/users/user-data/:id",userController.getUserData.bind(userController));
 
+  router.get("/users/search-users",userController.searchUsers.bind(userController));//users/search?query=na&role=admin
+
   router.get("/organisation-data", orgDataController.getOrganisationData.bind(orgDataController));
   
 
@@ -63,6 +65,7 @@ router.get(
  router.post("/chat/send-message", sendMessage);
 
  router.put("/chat/group/update",updateGroupChat);
+
 
   app.use("/api/v1", router);
 
