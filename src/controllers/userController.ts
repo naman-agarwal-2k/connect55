@@ -176,6 +176,12 @@ public async updateUser(req: Request, res: Response): Promise<void> {
   
   try{
     const {query,role}=req.query;
+    //can add limit
+    const limit = parseInt(req.query.limit as string) || 8;
+    //for pagination
+    const page = parseInt(req.query.page as string) || 1;
+    const skip = (page - 1) * limit;
+
     const searchQuery=  query && typeof query === "string" ? query : "";
     
     const filter:any = {};
@@ -189,8 +195,8 @@ public async updateUser(req: Request, res: Response): Promise<void> {
     if(role){
       filter.role = role;
     }
-
-    const users = await User.find(filter);
+    // for pagination add between this also .skip(skip)
+    const users = await User.find(filter).limit(limit);
     sendSuccess(SUCCESS.DEFAULT,users, res, {});
 
    }
