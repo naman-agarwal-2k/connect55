@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 import constants from "../utils/constants";
 import { sendError } from "../utils/universalFunctions";
 import { ERROR } from "../utils/responseMessages";
+import { TokenBlacklist } from "../models/TokenBlackList";
 
 export const generateAccessToken = function (accessTokenParams: any) {
   const token = jwt.sign(
@@ -21,7 +22,12 @@ export const generateAccessToken = function (accessTokenParams: any) {
 
 
 export const authenticateJWT = async function (accessToken: string, res: any): Promise<string> {
-  return new Promise((resolve, reject) => {
+  return new Promise(async (resolve, reject) => {
+     // Check if the token is blacklisted
+     const isBlacklisted = await TokenBlacklist.findOne({ accessToken });
+     if (isBlacklisted) {
+      sendError(new Error("Token is invalidated"), res, {});
+     }
     jwt.verify(accessToken, jwtSecretKey, (err: any, decoded: any) => {
       if (err) {
                sendError(ERROR.JWT_TOKEN_EXPIRED, res,{});

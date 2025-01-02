@@ -12,6 +12,7 @@ import User from '../models/User';
 import fs from "fs";
  import path from "path";
 import { generateAccessToken } from "../middlewares/jwt";
+import { TokenBlacklist } from "../models/TokenBlackList";
 
 
 export class UserController{
@@ -151,7 +152,6 @@ public async updateUser(req: Request, res: Response): Promise<void> {
   }
 }
 
-
   public async getUserData(req: Request, res:Response): Promise<void>{
     const {id}= req.params;
     try{
@@ -171,6 +171,22 @@ public async updateUser(req: Request, res: Response): Promise<void> {
   }
 };
 
+public async logout(req: Request, res: Response):Promise<void> {
+  try {
+    const token = req.headers.authorization?.split(" ")[1]; // Extract token from Authorization header
+
+    if (!token) {
+      return sendError(new Error("Token not provided"), res, {});
+    }
+
+    // Add the token to a blacklist (for stateless token invalidation)
+    await TokenBlacklist.create({ token });
+
+    sendSuccess(SUCCESS.LOG_OUT,token, res, {});
+  } catch (error) {
+    sendError(error, res, {});
+  }
+};
 
  public async searchUsers(req:Request,res:Response):Promise<void>{
   

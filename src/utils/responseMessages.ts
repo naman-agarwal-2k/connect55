@@ -131,6 +131,11 @@ export const SUCCESS = {
     customMessage: "Logged in successfully.",
     type: "LOGIN",
   },
+  LOG_OUT: {
+    statusCode: 200,
+    customMessage: "Logged out successfully.",
+    type: "LOG_OUT",
+  },
   PROFILE_LIST: {
     statusCode: 200,
     customMessage: "Profile has been fetched successfully.",

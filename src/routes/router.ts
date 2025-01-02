@@ -43,6 +43,8 @@ router.get(
 
   router.get("/users/user-data/:id",userController.getUserData.bind(userController));
 
+  router.post("/users/logout",userController.logout.bind(userController));
+
   router.get("/users/search-users",userController.searchUsers.bind(userController));//users/search?query=na&role=admin
 
   router.get("/organisation-data", orgDataController.getOrganisationData.bind(orgDataController));
