@@ -132,7 +132,7 @@ export const createChat = async (req: Request, res: Response) => {
     const { chatId } = req.params;
   
     try {
-      const chat = await Chat.findById(chatId).populate("participants", "name","profilePicture"); // Populating participants with their names
+      const chat = await Chat.findById(chatId).populate("participants", "name profilePicture"); // Populating participants with their names
       if (!chat) {
         return sendError(new Error("Chat not found"), res, {});
       }
