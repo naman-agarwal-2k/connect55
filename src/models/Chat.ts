@@ -30,7 +30,7 @@ const ChatSchema = new mongoose.Schema({
     },
     participants: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     messages: [MessageSchema],
-    groupAdmin: {type:String, default:null}
+    groupAdmin: { type: [String], default: [] },
 }, {
     toJSON: {
         virtuals: true,

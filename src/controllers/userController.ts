@@ -24,16 +24,8 @@ export class UserController{
 
     public async getHeaderTitles(payload: Request, res: Response): Promise<void> {
         try {
-            //Extracts the x-api-key value from the headers of the incoming request.
-            // x-api-key is typically used as an API key for authentication
             sendSuccess(SUCCESS.DEFAULT, TITLES, res, {});
 
-        //   if (payload.headers["x-api-key"] === process.env.CONTENT_API_KEY) {
-        //     const headerTitles = TITLES;
-        //     sendSuccess(SUCCESS.DEFAULT, headerTitles, res, {});
-        //   } else {
-        //     throw new Error(ResponseMessages.ERROR.INVALID_X_API_KEY.customMessage);
-        //   }
         } catch (error) {
           sendError(error, res, {});
         }

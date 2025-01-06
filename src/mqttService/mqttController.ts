@@ -9,7 +9,7 @@ import upload from "../middlewares/upload";
 import multer from "multer";
 
 export const createChat = async (req: Request, res: Response) => {
-    const { type, participants,groupName/*,adminId*/ } = req.body;
+    const { type, participants,groupName,adminId } = req.body;
   
     try {
 
@@ -22,9 +22,9 @@ export const createChat = async (req: Request, res: Response) => {
       if(!groupName){
             return sendError(new Error('Group name is required for group chats'), res, {});
           }
-        //   else if (!participants.includes(adminId)) {
-        //     return sendError(new Error('Admin must be a participant of the group.'), res, {});
-        // }
+          else if (!participants.includes(adminId)) {
+            return sendError(new Error('Admin must be a participant of the group.'), res, {});
+        }
         }
      if(type === "one-to-one" && (participants.length>2)){
       return sendError(new Error('Try creating group to chat with more people'), res, {});
@@ -33,7 +33,7 @@ export const createChat = async (req: Request, res: Response) => {
         type,
         groupName: type === 'group' ? groupName : null,
         participants,
-        // groupAdmin:adminId
+        groupAdmin:adminId
       });
   
       await chat.save();
@@ -43,57 +43,74 @@ export const createChat = async (req: Request, res: Response) => {
     }
   };
 
-  export const updateGroupChat = async (req:Request, res: Response)=>{
-    const {/*userId,*/chatId,groupName,addMembers,removeMembers}=req.body;
+  export const updateGroupChat = async (req: Request, res: Response) => {
+    const {userId, groupAdminIds, chatId, groupName, addMembers, removeMembers } = req.body;
 
-    try{
+    try {
         const chat = await Chat.findById(chatId);
-        if(!chat){
-            return sendError("Chat NotFound",res,{});
+        if (!chat) {
+            return sendError("Chat NotFound", res, {});
         }
+
         // Check if the chat is a group
-        if(chat.type !=="group"){
-            return sendError(new Error("Only group chats can be updated"),res,{});
+        if (chat.type !== "group") {
+            return sendError(new Error("Only group chats can be updated"), res, {});
         }
-         // Check if the user is the group admin
-        //  if (chat.groupAdmin !== userId) {
-        //   return res.status(403).json({ message: "Only the group admin can update participants." });
-        // }
-        
+
+        // Check if the user is one of the group admins
+        if (!chat.groupAdmin.includes(userId)) {
+          return sendError(new Error("Only group admins can update participants."), res, {});
+        }
+
         // Update the group name if provided
-        if(groupName){
-            chat.groupName=groupName;
+        if (groupName) {
+            chat.groupName = groupName;
         }
 
         // Add members if provided
-        if(addMembers && addMembers.length >0){
-            for(const userId of addMembers){
+        if (addMembers && addMembers.length > 0) {
+            for (const userId of addMembers) {
                 const user = await User.findById(userId);
-                if(!user){
+                if (!user) {
                     return sendError(new Error(`User with ID ${userId} not found`), res, {});
                 }
 
-                if(!chat.participants.includes(userId)){
+                if (!chat.participants.includes(userId)) {
                     chat.participants.push(userId);
                 }
             }
         }
 
-           // Remove members if provided
-           if (removeMembers && removeMembers.length > 0) {
+        // Remove members if provided
+        if (removeMembers && removeMembers.length > 0) {
             chat.participants = chat.participants.filter(
-                (participantId:  mongoose.Types.ObjectId) => !removeMembers.includes(participantId.toString())
+                (participantId: mongoose.Types.ObjectId) => !removeMembers.includes(participantId.toString())
             );
         }
-             // Save the updated chat
-             await chat.save();
-             sendSuccess(SUCCESS.DEFAULT, chat, res, {});
 
-    }catch(err){
+        // Update group admins if groupAdminIds are provided
+        if (groupAdminIds && groupAdminIds.length > 0) {
+            for (const adminId of groupAdminIds) {
+                // Ensure the admin is a participant
+                if (!chat.participants.includes(adminId)) {
+                    return sendError(new Error(`Admin with ID ${adminId} must be a participant to be assigned as an admin.`), res, {});
+                }
+
+                if (!chat.groupAdmin.includes(adminId)) {
+                    chat.groupAdmin.push(adminId);
+                }
+            }
+        }
+
+        // Save the updated chat
+        await chat.save();
+        sendSuccess(SUCCESS.DEFAULT, chat, res, {});
+
+    } catch (err) {
         sendError(err, res, {});
-
     }
-  }
+};
+
 
   export const getChatByUserId = async (req: Request, res: Response) => {
     const { userId } = req.params;
@@ -115,13 +132,12 @@ export const createChat = async (req: Request, res: Response) => {
     const { chatId } = req.params;
   
     try {
-      const chat = await Chat.findById(chatId).populate("participants", "name"); // Populating participants with their names
+      const chat = await Chat.findById(chatId).populate("participants", "name","profilePicture"); // Populating participants with their names
       if (!chat) {
         return sendError(new Error("Chat not found"), res, {});
       }
       sendSuccess(SUCCESS.DEFAULT, chat, res, {});
-    } catch (err) {
-      sendError(err, res, {});
+    } catch (err) {      sendError(err, res, {});
     }
   };
 
