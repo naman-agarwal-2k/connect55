@@ -1,5 +1,5 @@
 import mqtt from "mqtt";
-import { Chat } from "../models/Chat";
+import { Chat } from "../models/chat";
 import * as ngrok from 'ngrok';
 
 // Declare mqttClient as a global variable so it can be accessed in other files

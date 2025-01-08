@@ -47,6 +47,8 @@ const ensureDirExists = (dir: string) => {
 
 ensureDirExists(path.join(uploadBaseDir, "profile-pictures"));
 ensureDirExists(path.join(uploadBaseDir, "chat-media"));
+ensureDirExists(path.join(uploadBaseDir, "group-icon"));
+
 
 // Dynamic storage configuration
 const storage = multer.diskStorage({
@@ -58,6 +60,8 @@ const storage = multer.diskStorage({
             subDir = "profile-pictures";
         } else if (fieldname === "media") {
             subDir = "chat-media";
+        } else if (fieldname === "groupIcon") {
+            subDir = "group-icon";
         } else {
             return cb(new Error("Invalid fieldname for file upload"),'');
         }

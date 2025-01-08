@@ -4,7 +4,7 @@ import express, { Request, Response } from 'express';
 import Validator from "./validator";
 import upload from "../middlewares/upload";
 import { OrgDataController } from "../controllers/orgDataController";
-import { createChat, getChatById, getChatByUserId, sendMessage, updateGroupChat } from "../mqttService/mqttController";
+import { createChat, getChatByChatId, getChatByUserId, sendMessage, updateGroupChat } from "../controllers/mqttController";
 
 const userService = new UserService();
 const userController =  new UserController(userService);
@@ -55,18 +55,18 @@ router.get(
   //   res.status(200).json({ success: true, url: fileUrl });
   // });
 
-  router.post("/chat/create-chat", createChat);
+  router.post("/chat/create-chat",upload.single("groupIcon"), createChat);
 
   // Route to get all chats for a user
   router.get("/chat/:userId", getChatByUserId);
 
   // Route to get chat details by chat ID
-  router.get("/chat-data/:chatId", getChatById );
+  router.get("/chat-data/:chatId", getChatByChatId );
 
 // Route to send a message to a chat
  router.post("/chat/send-message", sendMessage);
 
- router.put("/chat/group/update",updateGroupChat);
+ router.patch("/chat/group/update",upload.single("groupIcon"),updateGroupChat);
 
 
   app.use("/api/v1", router);

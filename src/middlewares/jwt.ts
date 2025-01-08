@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 import constants from "../utils/constants";
 import { sendError } from "../utils/universalFunctions";
 import { ERROR } from "../utils/responseMessages";
-import { TokenBlacklist } from "../models/TokenBlackList";
+import { TokenBlacklist } from "../models/tokenBlackList";
 
 export const generateAccessToken = function (accessTokenParams: any) {
   const token = jwt.sign(

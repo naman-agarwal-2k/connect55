@@ -8,11 +8,11 @@ import {
   toISOString,
 } from "../utils/universalFunctions";
 import bcrypt from 'bcryptjs';
-import User from '../models/User';
+import User from '../models/user';
 import fs from "fs";
  import path from "path";
 import { generateAccessToken } from "../middlewares/jwt";
-import { TokenBlacklist } from "../models/TokenBlackList";
+import { TokenBlacklist } from "../models/tokenBlackList";
 
 
 export class UserController{

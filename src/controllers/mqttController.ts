@@ -1,17 +1,19 @@
 import { NextFunction, Request,RequestHandler,Response } from "express";
-import { Chat } from "../models/Chat";
+import { Chat } from "../models/chat";
 import { sendError, sendSuccess } from "../utils/universalFunctions";
 import { ERROR, SUCCESS } from "../utils/responseMessages";
-import { mqttClient } from "./mqttClient";
-import User from "../models/User";
+import { mqttClient } from "../mqttService/mqttClient";
+import User from "../models/user";
 import mongoose from "mongoose";
 import upload from "../middlewares/upload";
 import multer from "multer";
+import path from "path";
+import fs from "fs";
 
 export const createChat = async (req: Request, res: Response) => {
-    const { type, participants,groupName,adminId } = req.body;
-  
-    try {
+    const { type,groupName,adminId } = req.body;
+    const participants = JSON.parse(req.body.participants);
+      try {
 
       // Validate the type
       if (!['one-to-one', 'group'].includes(type)) {
@@ -26,14 +28,30 @@ export const createChat = async (req: Request, res: Response) => {
             return sendError(new Error('Admin must be a participant of the group.'), res, {});
         }
         }
+
      if(type === "one-to-one" && (participants.length>2)){
+      console.log(participants.length);
       return sendError(new Error('Try creating group to chat with more people'), res, {});
      }
+
+     const existingChat = await Chat.findOne({
+      type: "one-to-one",
+      $and: [
+        { participants: { $all: participants } }, // Ensure all participants exist
+        { "participants.2": { $exists: false } }, // Ensure only two participants (index 2 should not exist)
+      ],
+    });
+    
+    if (existingChat) {
+      return sendError(new Error('Chat already exists'), res, { chatId: existingChat._id });
+    }
+  
       const chat = new Chat({
         type,
         groupName: type === 'group' ? groupName : null,
         participants,
-        groupAdmin:adminId
+        groupAdmin:adminId,
+        groupIcon:req.file?`/uploads/group-icons/${req.file.filename}`:null
       });
   
       await chat.save();
@@ -44,12 +62,18 @@ export const createChat = async (req: Request, res: Response) => {
   };
 
   export const updateGroupChat = async (req: Request, res: Response) => {
-    const {userId, groupAdminIds, chatId, groupName, addMembers, removeMembers } = req.body;
+    const { userId, chatId, groupName } = req.body;
 
+    // Parse fields expected to be arrays
+    const groupAdminIds = req.body.groupAdminIds ? JSON.parse(req.body.groupAdminIds) : [];
+    const addMembers = req.body.addMembers ? JSON.parse(req.body.addMembers) : [];
+    const removeMembers = req.body.removeMembers ? JSON.parse(req.body.removeMembers) : [];
+
+  console.log(req.body);console.log(addMembers.length);
     try {
         const chat = await Chat.findById(chatId);
         if (!chat) {
-            return sendError("Chat NotFound", res, {});
+            return sendError(Error("Chat NotFound"), res, {});
         }
 
         // Check if the chat is a group
@@ -102,6 +126,21 @@ export const createChat = async (req: Request, res: Response) => {
             }
         }
 
+        if (req.file) {
+              const newGroupIconPath = `/uploads/group-icon/${req.file.filename}`;
+        
+              // Remove old profile picture if it exists
+              if (chat.groupIcon) {
+                const oldProfilePicturePath = path.join(__dirname, "..", chat.groupIcon);
+        
+                if (fs.existsSync(oldProfilePicturePath)) {
+                  fs.unlinkSync(oldProfilePicturePath); // Delete the old file
+                }
+              }
+        
+              chat.groupIcon = newGroupIconPath;
+            }
+
         // Save the updated chat
         await chat.save();
         sendSuccess(SUCCESS.DEFAULT, chat, res, {});
@@ -128,11 +167,11 @@ export const createChat = async (req: Request, res: Response) => {
     }
   };
 
-  export const getChatById = async (req: Request, res: Response) => {
+  export const getChatByChatId = async (req: Request, res: Response) => {
     const { chatId } = req.params;
   
     try {
-      const chat = await Chat.findById(chatId).populate("participants", "name profilePicture"); // Populating participants with their names
+      const chat = await Chat.findById(chatId).populate("participants groupIcon","name profilePicture"); // Populating participants with their names
       if (!chat) {
         return sendError(new Error("Chat not found"), res, {});
       }
