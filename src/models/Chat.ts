@@ -21,6 +21,7 @@ const MessageSchema = new mongoose.Schema({
         }
     }
 });
+export const Message = mongoose.model('Message', MessageSchema);
 
 const ChatSchema = new mongoose.Schema({
     type: { type: String, enum: ['one-to-one', 'group'], required: true },

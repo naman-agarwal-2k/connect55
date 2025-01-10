@@ -1,5 +1,5 @@
 import { NextFunction, Request,RequestHandler,Response } from "express";
-import { Chat } from "../models/chat";
+import { Chat, Message } from "../models/chat";
 import { sendError, sendSuccess } from "../utils/universalFunctions";
 import { ERROR, SUCCESS } from "../utils/responseMessages";
 import { mqttClient } from "../mqttService/mqttClient";
@@ -12,8 +12,8 @@ import fs from "fs";
 
 export const createChat = async (req: Request, res: Response) => {
     const { type,groupName,adminId } = req.body;
-    const participants = JSON.parse(req.body.participants);
       try {
+        const participants = JSON.parse(req.body.participants);
 
       // Validate the type
       if (!['one-to-one', 'group'].includes(type)) {
@@ -63,14 +63,12 @@ export const createChat = async (req: Request, res: Response) => {
 
   export const updateGroupChat = async (req: Request, res: Response) => {
     const { userId, chatId, groupName } = req.body;
-
-    // Parse fields expected to be arrays
+    try {
+          // Parse fields expected to be arrays
     const groupAdminIds = req.body.groupAdminIds ? JSON.parse(req.body.groupAdminIds) : [];
     const addMembers = req.body.addMembers ? JSON.parse(req.body.addMembers) : [];
     const removeMembers = req.body.removeMembers ? JSON.parse(req.body.removeMembers) : [];
 
-  console.log(req.body);console.log(addMembers.length);
-    try {
         const chat = await Chat.findById(chatId);
         if (!chat) {
             return sendError(Error("Chat NotFound"), res, {});
@@ -169,13 +167,29 @@ export const createChat = async (req: Request, res: Response) => {
 
   export const getChatByChatId = async (req: Request, res: Response) => {
     const { chatId } = req.params;
+    const {lastMessageId,limit=2}=req.query;
   
     try {
       const chat = await Chat.findById(chatId).populate("participants groupIcon","name profilePicture"); // Populating participants with their names
       if (!chat) {
         return sendError(new Error("Chat not found"), res, {});
       }
-      sendSuccess(SUCCESS.DEFAULT, chat, res, {});
+      // Convert messages to a standard array for safe operations
+      let messages = chat.messages.map((msg) => msg.toObject());
+
+      if (lastMessageId) {
+        const lastMessageObjectId = new mongoose.Types.ObjectId(lastMessageId as string); // Convert `lastMessageId` to ObjectId
+        messages = messages.filter((message) => message._id < lastMessageObjectId);
+      }
+  
+    messages = messages.sort((a, b) => {
+    const aTimestamp = new mongoose.Types.ObjectId(a._id).getTimestamp().getTime();
+    const bTimestamp = new mongoose.Types.ObjectId(b._id).getTimestamp().getTime();
+    return bTimestamp - aTimestamp; // Descending order
+    });
+    messages = messages.slice(0,Number(limit))
+    chat.messages=new mongoose.Types.DocumentArray(messages);;
+    sendSuccess(SUCCESS.DEFAULT, chat, res, {});
     } catch (err) {      sendError(err, res, {});
     }
   };
@@ -209,12 +223,13 @@ export const createChat = async (req: Request, res: Response) => {
         media: req.file ? `/uploads/chat-media/${req.file.filename}` : null, // File or image path
         timestamp: Date.now(),
       };
-  
-      chat.messages.push(message);
-      await chat.save();
-  
       // Publish the message to MQTT
       mqttClient.publish(`chat/${chatId}/messages`, JSON.stringify({message,origin: 'server'}));
+
+      chat.messages.push(message);
+
+      await chat.save();
+  
   
       sendSuccess(SUCCESS.DEFAULT, message, res, {});
     } catch (err) {
