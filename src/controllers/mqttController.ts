@@ -159,7 +159,15 @@ export const createChat = async (req: Request, res: Response) => {
         if (!chats || chats.length === 0) {
             return sendError(new Error("No chats found for the user"), res, {});
           }
-      sendSuccess(SUCCESS.DEFAULT, chats, res, {});
+           // Map through chats and include only the last message
+        const processedChats = chats.map(chat => {
+          const lastMessage = chat.messages?.[chat.messages.length - 1] || null;
+          return {
+              ...chat.toObject(),
+              messages: lastMessage ? [lastMessage] : [],
+          };
+      });
+      sendSuccess(SUCCESS.DEFAULT, processedChats, res, {});
     } catch (err) {
       sendError(err, res, {});
     }
