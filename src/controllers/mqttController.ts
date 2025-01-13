@@ -182,13 +182,13 @@ export const createChat = async (req: Request, res: Response) => {
         messages = messages.filter((message) => message._id < lastMessageObjectId);
       }
   
-   messages = messages.sort((a, b) => {
-  const aTimestamp = new mongoose.Types.ObjectId(a._id).getTimestamp().getTime();
-  const bTimestamp = new mongoose.Types.ObjectId(b._id).getTimestamp().getTime();
-  return bTimestamp - aTimestamp; // Descending order
+     messages = messages.sort((a, b) => {
+     const aTimestamp = new mongoose.Types.ObjectId(a._id).getTimestamp().getTime();
+     const bTimestamp = new mongoose.Types.ObjectId(b._id).getTimestamp().getTime();
+     return bTimestamp - aTimestamp; // Descending order
 });
-messages = messages.slice(0,Number(limit))
-chat.messages=new mongoose.Types.DocumentArray(messages);;
+    messages = messages.slice(0,Number(limit))
+    chat.messages=new mongoose.Types.DocumentArray(messages);;
       sendSuccess(SUCCESS.DEFAULT,chat, res, {});
     } catch (err) {      sendError(err, res, {});
     }
@@ -246,12 +246,20 @@ chat.messages=new mongoose.Types.DocumentArray(messages);;
         { _id: chatId },
         { $set: { pinned } }, // Update the pinned field
         { new: true } // Return the updated document
-      );
+      ).lean();
   
       if (!chat) {
         return sendError(Error('Chat not found'),res,{});
       }
-      sendSuccess(SUCCESS.DEFAULT,chat, res, {});
+    // Extract the last message from the messages array
+    const lastMessage = chat.messages?.length > 0 ? chat.messages[chat.messages.length - 1] : null;
+    // Prepare response data
+    const responseData = {
+      ...chat,
+      messages: lastMessage ? [lastMessage] : [],
+    };
+
+      sendSuccess(SUCCESS.DEFAULT,responseData, res, {});
         } catch (err) {
       console.error(err);
       return  sendError(err, res, {});
