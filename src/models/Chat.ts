@@ -1,6 +1,4 @@
 
-
-import { string } from "joi";
 import mongoose from "mongoose";
 
 // Define the message schema separately (optional)
@@ -29,6 +27,7 @@ const ChatSchema = new mongoose.Schema({
         type: String, // Only for group chats
         default: null,
     },
+    pinned:{type: Boolean,default:false},
     participants: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     messages: [MessageSchema],
     groupAdmin: { type: [String], default: [] },

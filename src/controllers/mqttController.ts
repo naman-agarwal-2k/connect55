@@ -182,14 +182,14 @@ export const createChat = async (req: Request, res: Response) => {
         messages = messages.filter((message) => message._id < lastMessageObjectId);
       }
   
-    messages = messages.sort((a, b) => {
-    const aTimestamp = new mongoose.Types.ObjectId(a._id).getTimestamp().getTime();
-    const bTimestamp = new mongoose.Types.ObjectId(b._id).getTimestamp().getTime();
-    return bTimestamp - aTimestamp; // Descending order
-    });
-    messages = messages.slice(0,Number(limit))
-    chat.messages=new mongoose.Types.DocumentArray(messages);;
-    sendSuccess(SUCCESS.DEFAULT, chat, res, {});
+   messages = messages.sort((a, b) => {
+  const aTimestamp = new mongoose.Types.ObjectId(a._id).getTimestamp().getTime();
+  const bTimestamp = new mongoose.Types.ObjectId(b._id).getTimestamp().getTime();
+  return bTimestamp - aTimestamp; // Descending order
+});
+messages = messages.slice(0,Number(limit))
+chat.messages=new mongoose.Types.DocumentArray(messages);;
+      sendSuccess(SUCCESS.DEFAULT,chat, res, {});
     } catch (err) {      sendError(err, res, {});
     }
   };
@@ -236,6 +236,27 @@ export const createChat = async (req: Request, res: Response) => {
       sendError(err, res, {});
     }
   }];
+
+  export const markChatPinned = async (req: Request, res: Response) => {
+    const { chatId, pinned } = req.body;
+  
+    try {
+      // Find the chat by ID and update its pinned status
+      const chat = await Chat.findOneAndUpdate(
+        { _id: chatId },
+        { $set: { pinned } }, // Update the pinned field
+        { new: true } // Return the updated document
+      );
+  
+      if (!chat) {
+        return sendError(Error('Chat not found'),res,{});
+      }
+      sendSuccess(SUCCESS.DEFAULT,chat, res, {});
+        } catch (err) {
+      console.error(err);
+      return  sendError(err, res, {});
+    }
+  };
 
   export const markMessageAsSeen = async (req: Request, res: Response) => {
   const { chatId, messageId, userId } = req.body;
