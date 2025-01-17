@@ -4,7 +4,7 @@ import express, { Request, Response } from 'express';
 import Validator from "./validator";
 import upload from "../middlewares/upload";
 import { OrgDataController } from "../controllers/orgDataController";
-import { createChat, getChatByChatId, getChatByUserId, markChatPinned, sendMessage, updateGroupChat } from "../controllers/mqttController";
+import { createChat, getChatByChatId, getChatByUserId, markChatPinned, sendMessage, updateGroupChat } from "../controllers/mqttChatController";
 
 const userService = new UserService();
 const userController =  new UserController(userService);

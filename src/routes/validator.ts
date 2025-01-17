@@ -3,6 +3,7 @@ import { logRequest, startSection } from "../utils/logging"
 import constants from "../utils/constants";
 import { sendError } from "../utils/universalFunctions";
 import { authenticateJWT } from "../middlewares/jwt";
+import { roleEnum } from "../models/user";
 
 
 const userLogin = async (req: any, res: any, next: any) => {
@@ -55,6 +56,9 @@ const userSchema = Joi.object({
     department: Joi.string().optional(),
     skills: Joi.array().items(Joi.string()).optional(),
     workLocation: Joi.string().optional(),
+    deviceTokens: Joi.array().items(Joi.string()).optional(),
+    authToken:Joi.string().optional(),
+    role: Joi.string().valid(...Object.values(roleEnum) ).default('regular').optional, 
   });
     let validFields = validateFields(req.body, res, userSchema);
     if (validFields) {
@@ -75,6 +79,8 @@ const userSchema = Joi.object({
     department: Joi.string().optional(),
     skills: Joi.array().items(Joi.string()).optional(),
     workLocation: Joi.string().optional(),
+    deviceTokens: Joi.array().items(Joi.string()).optional(),
+    role: Joi.string().valid(...Object.values(roleEnum) ).default(roleEnum.regular).optional, 
   });
       if (req.body.skills && typeof req.body.skills === "string") {
         try{
@@ -85,6 +91,15 @@ const userSchema = Joi.object({
         return ;
       }
     }
+    if (req.body.deviceTokens && typeof req.body.deviceTokens === "string") {
+      try{
+    req.body.deviceTokens = JSON.parse(req.body.deviceTokens);}
+    catch{
+      const errorReason = "Invalid JSON format for deviceTokens.";
+      sendError(new Error(errorReason), res, {});
+      return ;
+    }
+  }
     let validFields = validateFields(req.body, res, userSchema);
     if (validFields) {
       const isTokenValid = await validateTokenFields(req, res, req.method);

@@ -21,8 +21,11 @@ const schemaOptions = {
     },
   id: false, // Suppress the default id alias
 };
-enum roleEnum{"admin", "moderator", "regular"} ;
-
+export enum roleEnum {
+  admin = 'admin',
+  moderator = 'moderator',
+  regular = 'regular'
+}
 export interface IUser extends Document {
   email: string;
   password: string;
@@ -33,6 +36,7 @@ export interface IUser extends Document {
   skills?: string[];
   workLocation?: string;
   profilePicture?: string; // URL or path
+  authToken?:string;
   deviceTokens: string[]; //array of device tokens that you want to send notifications to.
   role:string;// User's role (e.g., "admin", "moderator", "regular")
 }
@@ -46,8 +50,9 @@ const UserSchema: Schema = new Schema({
   skills: { type: [String], default: [] },
   workLocation: { type: String, default: null },
   profilePicture: { type: String, default: null },
+  authToken: { type: String, default: null },
   deviceTokens: { type: [String], default: [] },
-  role: {type: String, roleEnum,default:"regular"}
+  role: {type: String, roleEnum,default:roleEnum.regular}
 }, 
 schemaOptions
 );

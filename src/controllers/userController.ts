@@ -37,7 +37,7 @@ export class UserController{
     ): Promise<void> {
       try {
           const {
-            email, password, ...rest
+            email, password,deviceTokens,...rest
           } = payload.body;
 
           const existingUser = await User.findOne({ email });
@@ -45,7 +45,7 @@ export class UserController{
             ResponseMessages.ERROR.EMAIL_ALREADY_EXISTS.customMessage
           )
           const hashedPassword = await bcrypt.hash(password, 10);
-          const newUser = new User({ email, password: hashedPassword, ...rest });
+          const newUser = new User({ email, password: hashedPassword,deviceTokens, ...rest });
           await newUser.save();
 
           //jwt code 
@@ -57,7 +57,8 @@ export class UserController{
           const userResponse: any = {
             userId: newUser._id,
             emailId: newUser.email,
-            token: token,
+            authToken: token,
+            deviceTokens:deviceTokens
           };
           sendSuccess(SUCCESS.REGISTER,userResponse, res, {});
 
