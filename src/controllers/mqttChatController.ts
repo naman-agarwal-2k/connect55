@@ -79,10 +79,10 @@ export const createChat = async (req: Request, res: Response) => {
             return sendError(new Error("Only group chats can be updated"), res, {});
         }
 
-        // Check if the user is one of the group admins
-        if (!chat.groupAdmin.includes(userId)) {
-          return sendError(new Error("Only group admins can update participants."), res, {});
-        }
+        // // Check if the user is one of the group admins
+        // if (!chat.groupAdmin.includes(userId)) {
+        //   return sendError(new Error("Only group admins can update participants."), res, {});
+        // }
 
         // Update the group name if provided
         if (groupName) {
@@ -110,19 +110,33 @@ export const createChat = async (req: Request, res: Response) => {
             );
         }
 
-        // Update group admins if groupAdminIds are provided
-        if (groupAdminIds && groupAdminIds.length > 0) {
-            for (const adminId of groupAdminIds) {
-                // Ensure the admin is a participant
-                if (!chat.participants.includes(adminId)) {
-                    return sendError(new Error(`Admin with ID ${adminId} must be a participant to be assigned as an admin.`), res, {});
-                }
-
-                if (!chat.groupAdmin.includes(adminId)) {
-                    chat.groupAdmin.push(adminId);
-                }
-            }
-        }
+        if (groupAdminIds !== null && groupAdminIds !== undefined) {
+          if (Array.isArray(groupAdminIds)) {
+              if (groupAdminIds.length > 0) {
+                  // Validate that all IDs in groupAdminIds are participants
+                  for (const adminId of groupAdminIds) {
+                      if (!chat.participants.includes(adminId)) {
+                          return sendError(
+                              new Error(`Admin with ID ${adminId} must be a participant to be assigned as an admin.`),
+                              res,
+                              {}
+                          );
+                      }
+                  }
+      
+                  // Update the groupAdmin list if groupAdminIds is explicitly provided and not empty
+                  chat.groupAdmin = groupAdminIds;
+              }
+          } else {
+              return sendError(
+                  new Error("groupAdminIds must be an array if provided."),
+                  res,
+                  {}
+              );
+          }
+      }
+      
+      
 
         if (req.file) {
               const newGroupIconPath = `/uploads/group-icon/${req.file.filename}`;
@@ -175,7 +189,7 @@ export const createChat = async (req: Request, res: Response) => {
 
   export const getChatByChatId = async (req: Request, res: Response) => {
     const { chatId } = req.params;
-    const {lastMessageId,limit=2}=req.query;
+    const {lastMessageId,limit=5}=req.query;
   
     try {
       const chat = await Chat.findById(chatId).populate("participants groupIcon","name profilePicture"); // Populating participants with their names
