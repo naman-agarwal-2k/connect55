@@ -247,11 +247,8 @@ export const createChat = async (req: Request, res: Response) => {
       };
       // Publish the message to MQTT
       mqttClient.publish(`chat/${chatId}/messages`, JSON.stringify({message,origin: 'server'}));
-
       chat.messages.push(message);
-
       await chat.save();
-  
   
       sendSuccess(SUCCESS.DEFAULT, message, res, {});
     } catch (err) {
@@ -289,20 +286,28 @@ export const createChat = async (req: Request, res: Response) => {
   };
 
   export const markMessageAsSeen = async (req: Request, res: Response) => {
-  const { chatId, messageId, userId } = req.body;
+  const { chatId, messageIds, userId } = req.body;
 
   try {
-    const chat = await Chat.findOneAndUpdate(
-      { _id: chatId, 'messages._id': messageId },
-      { $addToSet: { 'messages.$.seenBy': userId } },
-      { new: true }
-    );
+    const chat = await Chat.findOne({ _id: chatId });
+
 
     if (!chat) {
       return sendError(Error('Chat or message not found'), res, {});
     }
-
-    sendSuccess(SUCCESS.DEFAULT, chat, res, {});
+       // Ensure all message IDs exist in the chat
+       const messageUpdates = messageIds.map((messageId: string) =>
+        Chat.updateOne(
+          { _id: chatId, "messages._id": messageId },
+          { $addToSet: { "messages.$.seenBy": userId } } // Add userId to the `seenBy` array
+        )
+      );
+  
+      await Promise.all(messageUpdates); // Perform all updates in parallel
+  
+    mqttClient.publish(`chat/${chatId}/seen`,JSON.stringify({ messageIds, userId, timestamp: Date.now() })
+  )
+    sendSuccess(SUCCESS.DEFAULT,{ messageIds, userId }, res, {});
   } catch (err) {
     sendError(err, res, {});
   }

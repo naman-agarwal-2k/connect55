@@ -1,6 +1,7 @@
 import mqtt from "mqtt";
 import { Chat } from "../models/chat";
 import * as ngrok from 'ngrok';
+import { sendNotification } from "../firebase/utility";
 
 // Declare mqttClient as a global variable so it can be accessed in other files
 let mqttClient: mqtt.MqttClient;
@@ -39,27 +40,30 @@ const startMqttWithNgrok = async () => {
       try {
 
         const topicParts = topic.split('/');
-        const chatId = topicParts[1]; // Extract chatId from the topic
+        // Extract chatId from the topic
+        const chatId = topicParts[1];
 
         // Parse the message content
         const parsedMessage = JSON.parse(message.toString());
-        // const participants = chat.participants; // Assuming the chat model has participants
-        // const deviceTokens = participants.map((user: any) => user.deviceToken); // Replace with your logic
-
-        // // Send notification to participants
-        // await sendNotification(deviceTokens, {
-        //     title: "New Message",
-        //     body: parsedMessage.content || "You have a new message!",
-        //     data: { chatId },
-        // });
-          // Ignore messages originating from the server
-          if (parsedMessage.origin === 'server') return;
+        
+        // Ignore messages originating from the server
+        // if (parsedMessage.origin === 'server') return;
 
         // Update the chat in the database
         const chat = await Chat.findById(chatId);
+        
         if (chat) {
-          chat.messages.push(parsedMessage);
-          await chat.save();
+        const participants = chat.participants; // Assuming the chat model has participants
+        const deviceTokens = participants.map((user: any) => user.deviceTokens); // Replace with your logic
+        console.log('deviceTokensss:',deviceTokens);
+        // Send notification to participants
+        await sendNotification(['d0SdT68qStWu9qqPnqmLbV:APA91bG9D-WotgevmovOu7_WIWIcZYgB0hwpjS0pogZVhIGF7ARIwAhJg1PnDpSOHsQxDuUQ8ZXphvCSVU-a-9zuoU4wQwb3hlPVTt-spy6mBT9CYT-KfQU'], {
+            title: "New Message",
+            body: parsedMessage.content || "You have a new message!",
+            data: { chatId },
+        });
+          // chat.messages.push(parsedMessage);
+          // await chat.save();
 
           console.log('Message received and saved:', parsedMessage);
         } else {
