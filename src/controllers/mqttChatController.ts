@@ -209,7 +209,7 @@ export const createChat = async (req: Request, res: Response) => {
      const bTimestamp = new mongoose.Types.ObjectId(b._id).getTimestamp().getTime();
      return bTimestamp - aTimestamp; // Descending order
 });
-    messages = messages.slice(0,Number(limit))
+    messages = messages.slice(0,Number(limit)).reverse();
     chat.messages=new mongoose.Types.DocumentArray(messages);;
       sendSuccess(SUCCESS.DEFAULT,chat, res, {});
     } catch (err) {      sendError(err, res, {});
@@ -234,7 +234,7 @@ export const createChat = async (req: Request, res: Response) => {
     const { chatId, senderId, content, media } = req.body;
   
     try {
-      const chat = await Chat.findById(chatId);
+      const chat = await Chat.findById(chatId).populate("participants", "deviceTokens");
       if (!chat) {
         return sendError(Error('Chat not found'), res, {});
       }
@@ -244,6 +244,7 @@ export const createChat = async (req: Request, res: Response) => {
         content,
         media: req.file ? `/uploads/chat-media/${req.file.filename}` : null, // File or image path
         timestamp: Date.now(),
+        seenBy:[senderId]
       };
       // Publish the message to MQTT
       mqttClient.publish(`chat/${chatId}/messages`, JSON.stringify({message,origin: 'server'}));
