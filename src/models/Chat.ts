@@ -5,7 +5,7 @@ import mongoose from "mongoose";
 const MessageSchema = new mongoose.Schema({
     senderId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     content: { type: String },
-    media: { type: String },  // URL to uploaded image
+    media: { type: String },  
     timestamp: { type: Date, default: Date.now },
     seenBy: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
 }, {
@@ -20,7 +20,15 @@ const MessageSchema = new mongoose.Schema({
     }
 });
 export const Message = mongoose.model('Message', MessageSchema);
-
+// export interface IChat extends Document {
+//     type: "one-to-one" | "group";
+//     groupName?: string;
+//     pinned?: boolean;
+//     participants: IUser[];
+//     messages: IMessage[];
+//     groupAdmin: string[];
+//     groupIcon?: string;
+//   }
 const ChatSchema = new mongoose.Schema({
     type: { type: String, enum: ['one-to-one', 'group'], required: true },
     groupName: {
@@ -45,3 +53,4 @@ const ChatSchema = new mongoose.Schema({
 });
 
 export const Chat = mongoose.model('Chat', ChatSchema);
+//message_id=chatId_timestamp

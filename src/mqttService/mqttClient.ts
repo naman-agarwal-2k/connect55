@@ -2,6 +2,8 @@ import mqtt from "mqtt";
 import { Chat } from "../models/chat";
 import * as ngrok from 'ngrok';
 import { sendNotification } from "../firebase/utility";
+import user from "../models/user";
+import { scheduleUnseenNotification } from "./utility";
 
 // Declare mqttClient as a global variable so it can be accessed in other files
 let mqttClient: mqtt.MqttClient;
@@ -35,44 +37,92 @@ const startMqttWithNgrok = async () => {
     });
 
     // Handling incoming MQTT messages
-    mqttClient.on('message', async (topic, message) => {
-      console.log('Message received:', message);
-      try {
+    // mqttClient.on('message', async (topic, message) => {
+    //   console.log('Message received:', message);
+    //   try {
+    //     console.log('topic:',topic)
+    //     const topicParts = topic.split('/');
 
-        const topicParts = topic.split('/');
-        // Extract chatId from the topic
-        const chatId = topicParts[1];
+    //     //  chatId from the topic
+    //     const chatId = topicParts[1];
 
-        // Parse the message content
-        const parsedMessage = JSON.parse(message.toString());
+    //     // Parse the message content
+    //     const parsedMessage = JSON.parse(message.toString());
         
-        // Ignore messages originating from the server
-        // if (parsedMessage.origin === 'server') return;
+    //     // Ignore messages originating from the server
+    //     // if (parsedMessage.origin === 'server') return;
 
-        // Update the chat in the database
-        const chat = await Chat.findById(chatId);
+    //     const chat = await Chat.findById(chatId).populate("participants").exec();
         
-        if (chat) {
-        const participants = chat.participants; // Assuming the chat model has participants
-        const deviceTokens = participants.map((user: any) => user.deviceTokens); // Replace with your logic
-        console.log('deviceTokensss:',deviceTokens);
-        // Send notification to participants
-        await sendNotification(['d0SdT68qStWu9qqPnqmLbV:APA91bG9D-WotgevmovOu7_WIWIcZYgB0hwpjS0pogZVhIGF7ARIwAhJg1PnDpSOHsQxDuUQ8ZXphvCSVU-a-9zuoU4wQwb3hlPVTt-spy6mBT9CYT-KfQU'], {
-            title: "New Message",
-            body: parsedMessage.content || "You have a new message!",
-            data: { chatId },
-        });
-          // chat.messages.push(parsedMessage);
-          // await chat.save();
+    //     if (chat) {
+    //       const participants = chat.participants;
+    //       const recipients = participants.filter((user: any) => 
+    //       user._id.toString() !== parsedMessage.senderId && 
+    //       !parsedMessage.seenBy.includes(user._id.toString())
+    //   );
 
-          console.log('Message received and saved:', parsedMessage);
-        } else {
-          console.error(`Chat with ID ${chatId} not found`);
-        }
-      } catch (err) {
+
+    //       const allDeviceTokens: string[] = recipients
+    //         .flatMap((user:any) => user.deviceTokens) // Flatten all device token arrays
+    //         .filter(Boolean); // Remove any undefined or null tokens
+      
+    //     console.log("Device Tokens:", allDeviceTokens);
+    //     // Send notification to participants
+    //     if (allDeviceTokens.length > 0) {
+    //     await sendNotification(allDeviceTokens, {
+    //         title: "New Message",
+    //         body: parsedMessage.content || "You have a new message!",
+    //         data: { chatId },
+    //     });}
+        
+    //       chat.messages.push(parsedMessage);
+    //       await chat.save();
+
+    //       console.log('Message received and saved:', parsedMessage);
+    //     } else {
+    //       console.error(`Chat with ID ${chatId} not found`);
+    //     }
+    //   } catch (err) {
+    //     console.error('Error processing received MQTT message', err);
+    //   }
+    // });
+
+    mqttClient.on('message',async (topic,message)=>{
+      console.log('topic:',topic)
+      try{
+      const topicParts = topic.split('/');
+      const chatId = topicParts[1];
+      const parsedMessage = JSON.parse(message.toString());
+      const chat = await Chat.findById(chatId).populate("participants").exec();
+
+      // if(topic.startsWith("chat/") && topic.endsWith('/seen')){
+      //   if (chat) {
+      //     for (const msg of chat.messages) {
+      //       if (!msg.seenBy.includes(parsedMessage.userId)) {
+      //         msg.seenBy.push(parsedMessage.userId);
+      //       }
+      //     }
+      //     await chat.save();
+    
+      //     //updated seenBy list to clients
+      //     mqttClient.publish(`chat/${chatId}/updates`, JSON.stringify(chat.messages));
+      //   }
+
+      //   //Schedule unseen notification
+      //   scheduleUnseenNotification(chatId,parsedMessage.messageId,parsedMessage.senderId);
+      // }else
+       if(chat){
+      mqttClient.publish(`chat/${chatId}/messages`, JSON.stringify({message,origin: 'server'}));
+
+      chat.messages.push(parsedMessage);
+      await chat.save();
+      console.log('Message received and saved:', parsedMessage);
+    }else{
+        console.error(`Chat with ID ${chatId} not found`);
+      }}catch(err){
         console.error('Error processing received MQTT message', err);
       }
-    });
+    })
 
     // Handle connection errors
     mqttClient.on('error', (err) => {
@@ -102,3 +152,10 @@ const startMqttWithNgrok = async () => {
 
 // Export both the function and the mqttClient
 export { startMqttWithNgrok, mqttClient };
+
+//client side
+// const payload = {
+//   chatId: parsedMessage.chatId,
+//   userId: parsedMessage.userId,
+// };
+// mqttClient.publish(`chat/${chatId}/seen`, JSON.stringify(payload));

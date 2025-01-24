@@ -6,14 +6,13 @@ import cors from "cors";
 import mongoose from 'mongoose';
 import path from 'path';
 import { startMqttWithNgrok } from './mqttService/mqttClient';
-//import './mqttService/mqttClient';
 import "./firebase/firebase";
 
 const app = express();
 app.set("port",config.port); 
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 startMqttWithNgrok();
-// app.use(cookieParser());
+
 app.use(
   cors({
     origin: "*", // Consider restricting this in production
