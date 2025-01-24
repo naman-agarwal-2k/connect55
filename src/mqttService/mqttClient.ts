@@ -19,7 +19,7 @@ const startMqttWithNgrok = async () => {
 
     // // Parse the TCP URL from Ngrok's output (convert HTTP to TCP for MQTT)
     // const mqttUrl = url.replace('http', 'tcp');
-    const brokerUrl = 'mqtt://localhost:1883';
+    const brokerUrl = 'ws://broker.emqx.io:8083/mqtt';
 
     // MQTT broker connection
     mqttClient = mqtt.connect(brokerUrl);
@@ -112,7 +112,7 @@ const startMqttWithNgrok = async () => {
       //   scheduleUnseenNotification(chatId,parsedMessage.messageId,parsedMessage.senderId);
       // }else
        if(chat){
-      mqttClient.publish(`chat/${chatId}/messages`, JSON.stringify({message,origin: 'server'}));
+      // mqttClient.publish(`chat/${chatId}/messages`, JSON.stringify({message,origin: 'server'}));//no use now
 
       chat.messages.push(parsedMessage);
       await chat.save();
