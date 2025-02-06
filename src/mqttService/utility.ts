@@ -1,11 +1,10 @@
 import mongoose from "mongoose";
 import { sendNotification } from "../firebase/utility";
-import { Chat } from "../models/chat";
 import user from "../models/user";
+import { Chat } from "../models/chat";
 
 const unseenMessageTimers: Map<string, NodeJS.Timeout> = new Map();
 
-// Schedule notification for unseen messages
 export const scheduleUnseenNotification = (chatId: string, messageId: string, userId: string) => {
   const timerKey = `${chatId}:${messageId}:${userId}`;
   
@@ -14,7 +13,9 @@ export const scheduleUnseenNotification = (chatId: string, messageId: string, us
   const timer = setTimeout(async () => {
     // Check if the message is still unseen
     const chat = await Chat.findOne({ _id: chatId, "messages._id": messageId });
+    console.log('schedule notifi chat:',chat)
     const message = chat?.messages.find(msg => msg._id.toString() === messageId);
+    console.log('schedule notifi mssg:',message)
 
     if (message && !message.seenBy.includes(new mongoose.Types.ObjectId(userId))) {
       // Send notification
@@ -29,7 +30,7 @@ export const scheduleUnseenNotification = (chatId: string, messageId: string, us
     }
 
     unseenMessageTimers.delete(timerKey); // Remove the timer
-  }, 30000); // Wait 30 seconds
+  }, 5000); // Wait 30 seconds for now 5 secs
 
   unseenMessageTimers.set(timerKey, timer);
 };

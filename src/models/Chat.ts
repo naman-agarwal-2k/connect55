@@ -19,6 +19,9 @@ const MessageSchema = new mongoose.Schema({
         }
     }
 });
+
+// MessageSchema.index({ content: 1, timestamp: 1 }, { unique: true });
+
 export const Message = mongoose.model('Message', MessageSchema);
 // export interface IChat extends Document {
 //     type: "one-to-one" | "group";

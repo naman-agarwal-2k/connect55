@@ -4,6 +4,7 @@ import constants from "../utils/constants";
 import { sendError } from "../utils/universalFunctions";
 import { authenticateJWT } from "../middlewares/jwt";
 import { roleEnum } from "../models/user";
+import { database } from "firebase-admin";
 
 
 const userLogin = async (req: any, res: any, next: any) => {
@@ -71,7 +72,7 @@ const userSchema = Joi.object({
     startSection("userUpdate");
     logRequest(req);
     // Joi Schema
-const userSchema = Joi.object({
+ const userSchema = Joi.object({
     email: Joi.any().forbidden(),
     name: Joi.string().optional(),
     bio: Joi.string().optional(),

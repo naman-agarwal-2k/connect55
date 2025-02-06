@@ -1,5 +1,4 @@
 import { NextFunction, Request,RequestHandler,Response } from "express";
-import { Chat, Message } from "../models/chat";
 import { sendError, sendSuccess } from "../utils/universalFunctions";
 import { ERROR, SUCCESS } from "../utils/responseMessages";
 import { mqttClient } from "../mqttService/mqttClient";
@@ -9,6 +8,7 @@ import upload from "../middlewares/upload";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
+import { Chat } from "../models/chat";
 
 export const createChat = async (req: Request, res: Response) => {
     const { type,groupName,adminId } = req.body;
@@ -228,10 +228,11 @@ export const createChat = async (req: Request, res: Response) => {
         }
         next();
       });
-    },async (req: Request, res: Response) => {
+    },async (req: Request, res: Response) =>
+       {
     console.log("send message API Triggered with body:", req.body);
     
-    const { chatId, senderId, content, media } = req.body;
+    const { chatId, senderId, content, media,messageId } = req.body;
   
     try {
       const chat = await Chat.findById(chatId).populate("participants", "deviceTokens");
@@ -239,19 +240,22 @@ export const createChat = async (req: Request, res: Response) => {
         return sendError(Error('Chat not found'), res, {});
       }
   
-      const message = {
+      const messagePayload = {
+        messageId: messageId,
+        chatId: chatId,
+        timestamp: new Date().toISOString(),
         senderId: senderId,
-        content,
+        // content,
         media: req.file ? `/uploads/chat-media/${req.file.filename}` : null, // File or image path
-        timestamp: Date.now(),
-        seenBy:[senderId]
+        seenBy:[senderId],
+        origin: 'server'
       };
       // Publish the message to MQTT
-      mqttClient.publish(`chat/${chatId}/messages`, JSON.stringify({message,origin: 'server'}));
-      chat.messages.push(message);
+      mqttClient.publish(`chat/${chatId}/messages`,JSON.stringify(messagePayload));
+      chat.messages.push(messagePayload);
       await chat.save();
   
-      sendSuccess(SUCCESS.DEFAULT, message, res, {});
+      sendSuccess(SUCCESS.DEFAULT, messagePayload, res, {});
     } catch (err) {
       sendError(err, res, {});
     }
